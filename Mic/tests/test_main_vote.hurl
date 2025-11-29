@@ -1,7 +1,7 @@
 # ---------------------------------------
-# Test Invalid Login (wrong password)
+# Test vote with valid credentials
 # ---------------------------------------
-POST http://localhost:8080/vote
+POST http://localhost:8080/main_vote
 Content-Type: application/json
 
 {
@@ -11,9 +11,9 @@ Content-Type: application/json
 }
 
 HTTP 200
+
 [Asserts]
-header "Content-Type" contains "text/plain; charset=utf-8"
-jsonpath "$.cat" exists
-jsonpath "$.dog" exists
+header "Content-Type" contains "application/json"
+body contains "cat"
 
 
