@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"mon/auth"
 	"mon/vote"
@@ -15,6 +16,10 @@ type VoteRequest struct {
 	Password string `json:"password"`
 	Animal   string `json:"animal"`
 }
+
+// -----------------
+// Handlers
+// -----------------
 
 func voteHandler(w http.ResponseWriter, r *http.Request) {
 	var req VoteRequest
@@ -40,12 +45,23 @@ func voteHandler(w http.ResponseWriter, r *http.Request) {
 func resultsHandler(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(vote.Votes)
 }
+func wrapHandler(name string, handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		handler(w, r)
+		duration := time.Since(start)
+		log.Printf("[%s] %s %s processed in %v", name, r.Method, r.URL.Path, duration)
+	}
+}
 
+// -----------------
+// Main
+// -----------------
 func main() {
 	fmt.Println("Monlithic app running on :8080 ...")
 
-	http.HandleFunc("/vote", voteHandler)
-	http.HandleFunc("/results", resultsHandler)
+	http.HandleFunc("/vote", wrapHandler("Vote", voteHandler))
+	http.HandleFunc("/results", wrapHandler("Result", resultsHandler))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
